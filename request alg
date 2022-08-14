@@ -1,0 +1,442 @@
+// ==UserScript==
+// @name  POST ALG
+// @description  try to take over the world!
+// @version      2.1
+// @match https://algeria.blsspainvisa.com/*appointment. php
+// @match https://algeria.blsspainvisa.com/book_appointment.php
+// @require http://code. jquery.com/jquery-3.3.1.min.js
+// @require https://cdn.jsdelivr.net/npm/sweeta lert2@9
+// @require      https://code.jquery.com/jquery-3.6.0.js
+// @require      https://cdn.jsdelivr.net/npm/sweetalert2@11
+// ==/UserScript==
+//DO not touch this !!!
+var wholelInterval;
+var timerInterval;
+var compteur;
+var recaptcha_first = [];
+var recaptcha_second = [];
+var app_time = [
+  "08%3A30+-+08%3A45",
+  "08%3A45+-+09%3A00",
+  "Q9%3A15+-+09%3A30",
+  "Q9%3A45+-+10%3A00",
+  "10%3A30+-+10%3A45",
+  "10%3A45+-+11%3A00",
+  "11%3A15+-+11%3A30",
+  "11%3A45+-+12%3A00",
+  "12%3AQ0+-+12%3A15",
+  "13%3A15+-+13%3A30",
+  "14%3A00+-+14%3A15",
+];
+
+// Les attribues
+
+var dates = [
+  "2022-06-07 ",
+  "2022-06-07",
+  "2021-07-07",
+  "2021-07-07",
+  "2021-07-07",
+  "2021-07-07" /*, "2021-07-01", "2021-07-01"*/,
+];
+var index_heure = 2;
+
+var juridication = "15%23Algiers3210";
+//var juridication ="14%23oran239";
+var index_juridiction = 4; // 31 => ORAN ; 4 => ALGER
+
+var email = "zakariaroui7@gmail.com";
+var nom = "";
+var prenom = "";
+
+var index_type_visa = 1; // 1 -> Tourism ; 2 -> Business ; 5 -> Student ; 8 ->Medical Visit
+var type_visa = 43; // 43 -> Tourism ; 44 -> Business ; 47 -> Student ; 50 ->Medical Visit
+
+var loc = 10; // 9 -> ORN ; 10 -> ALG
+var mission = 15; // 14 -> ORN ; 15 -> ALG
+
+var date_de_naissance = "2012-08-26";
+var numero_de_passport = "0000000000";
+
+var passport_start = "2018-05-10";
+var passport_end = "2023-05-09";
+var passport_place = ""; //ORAN ou ALGIERS
+
+if (document.getElementsByClassName("grecaptcha-badge").length === 0) {
+  var script = document.createElement("script");
+  script.type = "text/javascript";
+  script.async;
+  script.sre =
+    "https://www.google.com/recaptcha/api.js?render=6LcLZaAUAAAAAArQGCwKgkh8SQ9_fcCjSpiUFqxZ";
+  document.getElementsByTagName("head")[0].appendChild(script);
+}
+function a() {
+  console.log("aaa");
+}
+function generate_captcha() {
+  console.log("generating new reCaptchas...");
+
+  compteur = 6;
+  recaptcha_first = [];
+  recaptcha_second = [];
+  timerInterval = setInterval(() => {
+    if (compteur > 0) {
+      grecaptcha.ready(() => {
+              grecaptcha
+                  .execute("6LcLZaAUAAAAAArQGCwKgkh8SQ9_fcCjSpiUFqxZ", {
+                      action: "alg_app_first",
+                  })
+                  .then(function (token) {
+                      //localStorage.setItem('recaptcha_first_' + compteur, token);
+                      console.log(token);
+
+                      compteur--;
+                      recaptcha_first.push(token);
+                  });
+
+              grecaptcha
+                  .execute("6LcLZaAUAAAAAArQGCwKgkh8SQ9_fcCjSpiUFqxZ", {
+                      action: "alg_app_second",
+                  })
+                  .then(function (token) {
+                      //localStorage.setItem('recaptcha_second_' + compteur, token);
+                      console.log(token);
+
+                      recaptcha_second.push(token);
+                  });
+          });
+    } else {
+      console.log('cc');
+
+      Swal.fire({
+        title: "reCaptcha Ready !!!",
+        timer: 1000,
+        onClose: () => {
+          clearInterval(timerInterval);
+
+          localStorage.setItem(
+            "recaptcha_first",
+            JSON.stringify(recaptcha_first)
+          );
+
+          localStorage.setItem(
+            "recaptcha_second",
+            JSON.stringify(recaptcha_second)
+          );
+        }
+      })
+    }
+  }, 2000);
+}
+async function phone_code() {
+  const { value: formValues } = await Swal.fire({
+    title: "Enter le numéro et le code",
+    html:
+      '<input id="swal-input1" class="Swal2-input" placeholder="Enter le numéro"vaLue="' +
+      localStorage.getItem("phone") +
+      '">!' +
+      '<input id="swal-input2" class="swal2-input" placeholder="Enter le code"vaLue="' +
+      localStorage.getItem("VerificationCode") +
+      '">',
+    focusConfirm: false,
+    preConfirm: () => {
+      return [
+        document.getElementById("swal-input1").value,
+        document.getElementById("swal-input2").value,
+      ];
+    },
+  });
+  if (formValues) {
+    //localStorage.setItem('phone', phone)
+    localStorage.setItem("phone", formValues[0]);
+    localStorage.setItem("VerificationCode", formValues[1]);
+    //saveCodes(formValues)
+  }
+}
+function save(response) {
+  var htmlContent = [response];
+
+  var bl = new Blob(htmlContent, { type: "text/html" });
+  var a = document.createElement("a");
+
+  a.href = URL.createObjectURL(bl);
+
+  var currentdate = new Date();
+
+  var datetime =
+    currentdate.getDate() +
+    "_" +
+    (currentdate.getMonth() + 1) +
+    "_" +
+    currentdate.getFullYear() +
+    " @" +
+    currentdate.getHours() +
+    "_" +
+    currentdate.getMinutes() +
+    "_" +
+    currentdate.getSeconds();
+
+  a.download = "response " + datetime + ".html";
+  a.hidden = true;
+
+  document.body.appendChild(a);
+
+  a.innerHTML = "something";
+  a.click();
+}
+
+function go_continue() {
+  console.log("Sending continue ...");
+
+  const xhr_continue = new XMLHttpRequest();
+
+  var phone = localStorage.getItem("phone");
+
+  var code = localStorage.getItem("VerificationCode");
+
+  var recaptcha_first = JSON.parse(localStorage.getItem("recaptcha_first"));
+  email = email.replace("@", "@");
+
+  xhr_continue.onload = function () {
+    if (this.status === 200) {
+      save(this.responseText);
+      if (
+        this.responseText.indexOf(
+          "You have already booked an appointmentwith this phone number."
+        ) != -1
+      ) {
+        Swal.fire(
+          "You have already booked an appointment with this phonenumber."
+        );
+        xhr_continue.abort();
+      } else if (
+        this.responseText.indexOf("Captcha verification failed.") != 1
+      ) {
+        console.log("Captcha verification failed.");
+        go_continue();
+      } else if (
+        this.responseText.indexOf("I agree to provide my Consent") != -1
+      ) {
+        xhr_continue.abort();
+        go_agree();
+      }
+    } else {
+      go_continue();
+    }
+  };
+  for (let i = 0; i < 5; i++) {
+    xhr_continue.open(
+      "POST",
+      "https://algeria.blsspainvisa.com/book_appointment.php"
+    );
+    xhr_continue.setRequestHeader(
+      "Content-type",
+      "appLication/x-www-form-urlencoded"
+    );
+
+    xhr_continue.send(
+      "app_type=Individual&juridication=" +
+      juridication +
+      "&visa_no=&visa_valid_from=&visa_valid_to=&rejected=No&refusal_date=&phone_code=213&phone=" +
+      phone +
+      "&email=" +
+      email +
+      "&otp=" +
+      code +
+      "&countryID=&tokenvalue=&g-recaptcha-response=" +
+      recaptcha_first[Math.floor(Math.random() * (recaptcha_first.length - 1))] +
+
+      "&save=continue"
+  );
+}
+}
+
+function go_agree() {
+  console.log("Sending agree ...");
+  const xhr_agree = new XMLHttpRequest();
+
+  xhr_agree.onload = function () {
+    if (this.status === 200) {
+      save(this.responseText);
+
+      if (
+        this.responseText.indexOf(
+          "<script>document . location. href=' appointment . php' </script>"
+        ) != -1
+      ) {
+        //save(this.responseText);
+        xhr_agree.abort();
+        go_submit();
+      }
+    } else {
+      //save(this.responseText);
+      go_agree();
+    }
+  };
+  for (let j = 0; j < 5; j++) {
+    xhr_agree.open(
+      "POST",
+      "https://algeria.blsspainvisa.com/book_appointment.php"
+    );
+    xhr_agree.setRequestHeader(
+      "Content-type",
+      "appLication/x-www-form-urlencoded"
+    );
+    xhr_agree.send("agree=Agree");
+  }
+}
+
+function go_submit() {
+  const xhr_submit = new XMLHttpRequest();
+  console.log("Sending submit ...");
+
+  var recaptcha_second = JSON.parse(localStorage.getItem("recaptcha_second"));
+
+  var phone = localStorage.getItem("phone");
+  var code = localStorage.getItem("VerificationCode");
+
+  var index_of_time = Math.floor(Math.random() * (10 - 1)) + 1
+  xhr_submit.onload = function () {
+    if (this.status === 200) {
+      save(this.responseText);
+
+      if (
+        this.responseText.indexOf(
+          'You have already booked an appointmentwith this phone number.Please cancel existing for further booking.'
+        ) != -1
+      ) {
+        Swal.fire(
+          "You have already booked an appointment with this phone number"
+        );
+        xhr_submit.abort();
+      } else if (
+        this.responseText.indexOf(
+          "You have already booked anappointment with this passport number. Please cancel existing for further bookingwith same passport number."
+        ) != -1
+      ) {
+        Swal.fire(
+          "You have already booked an appointment with thispassport number"
+        );
+        xhr_submit.abort();
+      } else if (
+        this.responseText.indexOf(
+          "You have already booked anappointment with this name and date of birth. Please cancel existing for furtherbooking with same name and date of birth."
+        ) != -1
+      ) {
+        Swal.fire(
+          "You have already booked an appointment with this nameand date of birth"
+        );
+        xhr_submit.abort();
+      } else if (
+        this.responseText.indexOf(
+          "Your email has been blocked.Pleaseuse another email address."
+        ) != -1
+      ) {
+        Swal.fire("Your email has been blocked");
+        xhr_submit.abort();
+      } else if (
+        this.responseText.indexOf(
+          "Invalid Entry OR Date slot  capacity full."
+        ) != -1
+      ) {
+        console.log("Invalid Entry OR Date slot capacity full.");
+        go_submit();
+      } else if (
+        this.responseText.indexOf("Captcha verification failed.") != -1
+      ) {
+        console.log("Captcha verification failed.");
+        go_submit();
+      } else if (this.responseText.indexOf("Your ip ad") != -1) {
+        Swal.fire("Changez l'ip adress");
+        xhr_submit.abort();
+      } else if (this.responseText.indexOf("success=1") != -1) {
+        Swal.fire("Appointment has been taken");
+        xhr_submit.abort();
+
+        var currentdate = new Date();
+
+        var datetime =
+          currentdate.getDate() +
+          "_" +
+          (currentdate.getMonth() + 1) +
+          "_" +
+          currentdate.getFullYear() +
+          " @" +
+          currentdate.getHours() +
+          "_" +
+          currentdate.getMinutes() +
+          "_" +
+          currentdate.getSeconds();
+
+        localStorage.setItem(
+          "RDV_Boocked_In_" + datetime + "_for_" + nom + "_" + prenom,
+          this.responseText
+        );
+      } else {
+        //save(this.responseText);
+        console.Log(this.responseText);
+        go_submit();
+      }
+    } else {
+      go_submit();
+    }
+  };
+  var date;
+
+  /*if(localStorage.getItem("available_dates")) {
+
+date = JSON. parse(localStorage.getItem("available_dates"));
+} else {
+
+date = dates;
+}*/
+
+  for (let j = 0; j < 10; j++) {
+    xhr_submit.open(
+      "POST",
+      "https://algeria.blsspainvisa.com/appointment. php"
+    );
+
+    xhr_submit.setRequestHeader(
+      "Content-type",
+      "application/x-www-form-urlencoded"
+    );
+
+    xhr_submit.send(
+      "CSRFName=&CSRFToken=&app_date=" +
+        dates[j % dates.length] +
+        "&loc_selected=" +
+        loc +
+        "&mission_selected=" +
+        mission +
+        "&app_time=" +
+        app_time[index_of_time] +
+        "&VisaTypeId=" +
+        type_visa +
+        "&first_name=" +
+        nom +
+        "&last_name=" +
+        prenom +
+        "&dateOfBirth=" +
+        date_de_naissance +
+        "&phone_code=213&phone=" +
+        phone +
+        "&nationalityId=62&passportType=01&passport_no=" +
+        numero_de_passport +
+        "&pptIssueDate=" +
+        passport_start +
+        "&pptExpiryDate=" +
+        passport_end +
+        "&pptIssuePalace=" +
+        passport_place +
+        "&g-recaptcha-response=" +
+        recaptcha_second[j % dates.length] +
+        "&save-Submit&firstperson=&app_date_hidden=" +
+        dates[j % dates.length] +
+        "&type_hidden=&loc_final=" +
+        loc +
+        "&countryID=62&missionId=" +
+        mission
+    );
+  }
+}
